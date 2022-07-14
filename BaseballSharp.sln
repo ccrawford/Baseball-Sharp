@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31229.75
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32526.322
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{36466C80-C5AF-4F2E-810C-0C2EC8BFD82E}"
 	ProjectSection(SolutionItems) = preProject
@@ -14,6 +14,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BaseballSharpCli", "samples\BaseballSharpCli\BaseballSharpCli.csproj", "{52A4CBA5-209A-49AC-9008-9D76306A8F13}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BaseballSharp", "src\BaseballSharp.csproj", "{B188B5BF-0708-4F12-BD6A-3A0664BE9172}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SoxMonApi", "SoxMonApi\SoxMonApi.csproj", "{47236358-2D93-446E-88F9-266FCCF6C46F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,6 +31,10 @@ Global
 		{B188B5BF-0708-4F12-BD6A-3A0664BE9172}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B188B5BF-0708-4F12-BD6A-3A0664BE9172}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B188B5BF-0708-4F12-BD6A-3A0664BE9172}.Release|Any CPU.Build.0 = Release|Any CPU
+		{47236358-2D93-446E-88F9-266FCCF6C46F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{47236358-2D93-446E-88F9-266FCCF6C46F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{47236358-2D93-446E-88F9-266FCCF6C46F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{47236358-2D93-446E-88F9-266FCCF6C46F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -148,6 +148,11 @@ public class Offense
     public Pitcher? pitcher { get; set; }
     public int? battingOrder { get; set; }
     public Team? team { get; set; }
+    public First? first { get; set; }
+    public Second? second { get; set; }
+    public Third? third { get; set; }
+
+
 }
 
 public class LinescoreDto

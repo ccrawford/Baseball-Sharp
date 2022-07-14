@@ -12,15 +12,24 @@ public class Linescore
     /// </summary>
     public string? InningHalf { get; set; }
 
+    public int? Outs { get; set; }
+    public int? Balls { get; set; }
+    public int? Strikes { get; set; }
+
     /// <summary>
     /// The number of innings scheduled for the game..
     /// </summary>
     public int? ScheduledInnings { get; set; }
 
     /// <summary>
-    /// The number of runs for the home team.
+    /// The number of runs in the inning for the home team.
     /// </summary>
     public int? HometeamRuns { get; set; }
+
+    /// <summary>
+    /// The number of runs in the whole game for the home team.
+    /// </summary>
+    public int? HometeamRunsGame { get; set; }
 
     /// <summary>
     /// The number of hits for the home team.
@@ -33,12 +42,17 @@ public class Linescore
     public int? HometeamErrors { get; set; }
 
     /// <summary>
-    /// The number of runs for the away team.
+    /// The number of runs in the inning for the away team.
     /// </summary>
     public int? AwayteamRuns { get; set; }
 
     /// <summary>
-    /// The number of hits for the away.
+    /// The number of runs for the whole game for the away team.
+    /// </summary>
+    public int? AwayteamRunsGame { get; set; }
+
+    /// <summary>
+    /// The number of hits for the inning.
     /// </summary>
     public int? AwayteamHits { get; set; }
 
@@ -51,6 +65,8 @@ public class Linescore
     /// The inning number.
     /// </summary>
     public int? InningNumber { get; set; }
+
+    public string? InningState { get; set; }
 
     /// <summary>
     /// The ID of the defensive pitcher.
@@ -226,4 +242,9 @@ public class Linescore
     /// The offensive team name.
     /// </summary>
     public string? OffensiveTeamName { get; set; }
+
+    public bool ManOnFirst { get; set; } = false;
+    public bool ManOnSecond { get; set; } = false;
+    public bool ManOnThird { get; set; } = false;
+
 }

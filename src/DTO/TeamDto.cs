@@ -30,6 +30,10 @@ public class Team
     public Springleague? springLeague { get; set; }
     public string? allStarStatus { get; set; }
     public bool? active { get; set; }
+
+
+    public BaseballSharp.DTO.GameSchedule.GameScheduleRoot? nextGameSchedule { get; set; }
+    public BaseballSharp.DTO.GameSchedule.GameScheduleRoot? previousGameSchedule { get; set; }
 }
 
 public class Venue

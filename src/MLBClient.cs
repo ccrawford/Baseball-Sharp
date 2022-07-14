@@ -3,10 +3,12 @@ using BaseballSharp.DTO.GameSchedule;
 using BaseballSharp.DTO.Linescore;
 using BaseballSharp.DTO.PitchingReport;
 using BaseballSharp.DTO.Teams;
+using BaseballSharp.DTO.Standings;
 using BaseballSharp.Enums;
 using BaseballSharp.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -30,6 +32,122 @@ namespace BaseballSharp
             return await returnMessage.Content.ReadAsStringAsync();
         }
 
+
+        /// <summary>
+        /// Returns the next five games for a specified team.
+        /// </summary>
+        /// <param teamId="int">The id of the team of interest</param>
+        /// <returns>A list of schedule objects.</returns>
+        public async Task<IEnumerable<Schedule>> GetNextScheduleAsync(int teamId)
+        {
+            var upcomingGames = new List<Schedule>();
+
+            var jsonResponse = await GetResponseAsync("/teams/" + teamId + "?sportIds=1&hydrate=nextSchedule");
+            var mlbTeams = JsonSerializer.Deserialize<TeamDto>(jsonResponse);
+
+            foreach (var team in (mlbTeams ?? new TeamDto()).teams)
+            {
+                foreach (var item in (team?.nextGameSchedule?.dates ?? new GameScheduleRoot().dates))
+                {
+
+                    foreach (var game in item.games)
+                    {
+
+                        upcomingGames.Add(new Models.Schedule()
+                        {
+                            gameID = game?.gamePk,
+                            AwayTeam = game?.teams?.away?.team?.name,
+                            HomeTeam = game?.teams?.home?.team?.name,
+                            Ballpark = game?.venue?.name,
+                            ScheduledInnings = game?.scheduledInnings,
+                            CodedGameState = game?.status?.codedGameState,
+                            DayNight = game?.dayNight,
+                            GameTime = game?.gameDate,
+                        });
+
+                    }
+                }
+            }
+
+            return upcomingGames;
+        }
+
+        /// <summary>
+        /// Returns the previous five games for a specified team.
+        /// </summary>
+        /// <param teamId="int">The id of the team of interest</param>
+        /// <returns>A list of schedule objects.</returns>
+        public async Task<IEnumerable<Schedule>> GetPreviousScheduleAsync(int teamId)
+        {
+            var previousGames = new List<Schedule>();
+
+            var jsonResponse = await GetResponseAsync("/teams/" + teamId + "?sportIds=1&hydrate=previousSchedule");
+            var mlbTeams = JsonSerializer.Deserialize<TeamDto>(jsonResponse);
+
+            foreach (var team in (mlbTeams ?? new TeamDto()).teams)
+            {
+                foreach (var item in (team?.previousGameSchedule?.dates ?? new GameScheduleRoot().dates))
+                {
+
+                    foreach (var game in item.games)
+                    {
+                        if (game?.status?.codedGameState == "F") // Only add completed games.
+                        {
+                            previousGames.Add(new Models.Schedule()
+                            {
+                                gameID = game?.gamePk,
+                                AwayTeam = game?.teams?.away?.team?.name,
+                                HomeTeam = game?.teams?.home?.team?.name,
+                                Ballpark = game?.venue?.name,
+                                ScheduledInnings = game?.scheduledInnings,
+                                CodedGameState = game?.status?.codedGameState,
+                                DayNight = game?.dayNight,
+                                GameTime = game?.gameDate,
+                            });
+                        }
+                    }
+                }
+            }
+
+            return previousGames;
+        }
+
+
+        /// <summary>
+        /// Returns game schedule/summary for specified gamePk
+        /// </summary>
+        /// <param gamePk="gamePk">The date to return data for.</param>
+        /// <returns>A single schedule objects.</returns>
+        public async Task<Schedule> GetSingleScheduleAsync(int gamePk)
+        {
+
+            var jsonResponse = await GetResponseAsync("/schedule?gamePk=" + gamePk.ToString() + "&useLatestGames=true&hydrate=probablePitcher");
+            var gameSchedule = JsonSerializer.Deserialize<GameScheduleRoot>(jsonResponse);
+            // TODO FIX for double header. Pick the right game. 
+            // This is really odd. Using gamePk returns both games of DH and gives same gamePk for both.
+            if (gameSchedule?.totalGames == 0) return new Schedule();
+
+            var gameResult = new Models.Schedule()
+            {
+                gameID = gameSchedule?.dates[0].games[0].gamePk,
+                AwayTeam = gameSchedule?.dates[0].games[0].teams?.away?.team?.name,
+                HomeTeam = gameSchedule?.dates[0].games[0].teams?.home?.team?.name,
+                AwayProbablePitcher = gameSchedule?.dates[0].games[0].teams?.away?.probablePitcher?.fullName ?? "",
+                HomeProbablePitcher = gameSchedule?.dates[0].games[0].teams?.home?.probablePitcher?.fullName ?? "",
+                Ballpark = gameSchedule?.dates[0].games[0].venue?.name,
+                ScheduledInnings = gameSchedule?.dates[0].games[0].scheduledInnings,
+                CodedGameState = gameSchedule?.dates[0].games[0].status?.codedGameState ?? "X",
+                DayNight = gameSchedule?.dates[0].games[0].dayNight,
+                GameTime = gameSchedule?.dates[0].games[0].gameDate,
+                HomeScore = gameSchedule?.dates[0].games[0].teams?.home?.score,
+                AwayScore = gameSchedule?.dates[0].games[0].teams?.away?.score,
+            };
+
+            return gameResult;
+        }
+
+
+
         /// <summary>
         /// Returns a list of the matchups and ballpark for the specified date.
         /// </summary>
@@ -51,7 +169,13 @@ namespace BaseballSharp
                         gameID = game.gamePk,
                         AwayTeam = game.teams?.away?.team?.name,
                         HomeTeam = game.teams?.home?.team?.name,
-                        ScheduledInnings = game.scheduledInnings
+                        Ballpark = game.venue?.name,
+                        ScheduledInnings = game.scheduledInnings,
+                        DayNight = game.dayNight,
+                        GameTime = game.gameDate,
+                        HomeScore = game.teams?.home?.score,
+                        AwayScore = game.teams?.away?.score,
+                        CodedGameState = game.status.codedGameState,
                     });
                 }
             }
@@ -125,6 +249,17 @@ namespace BaseballSharp
             return teamsList;
         }
 
+        public async Task<String> GetLatestComment(int gamePk)
+        {
+            var jsonResponse = await GetResponseAsync($"/game/{gamePk}/playByPlay?fields=allPlays,result,description");
+            var commentaryJson = JsonSerializer.Deserialize<CommentaryDto>(jsonResponse);
+
+            if ((commentaryJson?.allPlays?.Length ?? 0) > 0)
+                return commentaryJson?.allPlays?[commentaryJson.allPlays.Length - 2].result?.description ?? String.Empty;
+
+            return String.Empty;
+        }
+
         /// <summary>
         /// Returns a list of team roster data for a given season.
         /// Use the GetTeamDataAsync() call to obtain the id numbers needed to satisfy the teamId parameter.
@@ -178,6 +313,41 @@ namespace BaseballSharp
             return teamRosters;
         }
 
+        public async Task<IEnumerable<Standing>> GetStandings(int divisionId)
+        {
+            var standings = new List<Standing>();
+            // XXX TODO remove hard coding.
+            var jsonResponse = await GetResponseAsync("/standings?leagueId=103&season=2022");
+            var standingsJson = JsonSerializer.Deserialize<StandingDto>(jsonResponse);
+
+            foreach (var divisionStanding in (standingsJson ?? new StandingDto()).records)
+            {
+                if (divisionStanding.division.id == divisionId)
+                {
+                    foreach (var teamRecord in divisionStanding.teamRecords)
+                    {
+                        standings.Add(new Standing()
+                        {
+                            name = teamRecord?.team?.name ?? "n/a",
+                            teamId = teamRecord?.team?.id ?? 0,
+                            divisionRank = teamRecord.divisionRank,
+                            gamesBack = teamRecord.gamesBack,
+                            wins = teamRecord.wins,
+                            losses = teamRecord.losses,
+                            pct = teamRecord.winningPercentage,
+                            magicNumber = teamRecord.magicNumber,
+
+                        });
+                    }
+                }
+                Console.WriteLine($"Division: {divisionStanding.division.id}, Team: {divisionStanding.teamRecords[0].team.name}");
+
+            }
+
+            return standings;
+
+        }
+
         /// <summary>
         /// Returns a list of linescore data for the game in question.
         /// </summary>
@@ -197,11 +367,17 @@ namespace BaseballSharp
                 {
                     CurrentInning = lineScoresJson?.currentInning,
                     InningHalf = lineScoresJson?.inningHalf,
+                    InningState = lineScoresJson?.inningState,
+                    Outs = lineScoresJson?.outs,
+                    Balls = lineScoresJson?.balls,
+                    Strikes = lineScoresJson?.strikes,
                     ScheduledInnings = lineScoresJson?.scheduledInnings,
-                    HometeamRuns = lineScoresJson?.teams?.home?.runs,
+                    HometeamRunsGame = lineScoresJson?.teams?.home?.runs,
+                    HometeamRuns = inning?.home?.runs,
                     HometeamHits = lineScoresJson?.teams?.home?.hits,
                     HometeamErrors = lineScoresJson?.teams?.home?.errors,
-                    AwayteamRuns = lineScoresJson?.teams?.away?.runs,
+                    AwayteamRunsGame = lineScoresJson?.teams?.away?.runs,
+                    AwayteamRuns = inning?.away?.runs,
                     AwayteamHits = lineScoresJson?.teams?.away?.hits,
                     AwayteamErrors = lineScoresJson?.teams?.away?.errors,
                     InningNumber = inning?.num,
@@ -236,7 +412,12 @@ namespace BaseballSharp
                     OffensiveTeamOnDeckName = lineScoresJson?.offense?.onDeck?.fullName,
                     OffensiveTeamOnDeckId = lineScoresJson?.offense?.onDeck?.id,
                     OffensiveTeamInHoleName = lineScoresJson?.offense?.inHole?.fullName,
-                    OffensiveTeamInHoleId = lineScoresJson?.offense?.inHole?.id
+                    OffensiveTeamInHoleId = lineScoresJson?.offense?.inHole?.id,
+                    ManOnFirst = lineScoresJson?.offense?.first != null,
+                    ManOnSecond = lineScoresJson?.offense?.second != null,
+                    ManOnThird = lineScoresJson?.offense?.third != null,
+
+
                 });
             }
 
@@ -303,5 +484,44 @@ namespace BaseballSharp
 
             return divisions;
         }
+
+        public async Task<int> GetNextGameId(int teamId)
+        {
+            // Get the upcoming games for the team and return the id of the one with the earliest gametime
+            var games = await GetNextScheduleAsync(teamId);
+            if (games.Count() == 0) return 0;
+            var firstGame = games.Aggregate((curMin, x) =>
+                (curMin == null || (x.GameTime ?? DateTime.MaxValue) < curMin.GameTime ? x : curMin));
+            return firstGame.gameID ?? 0;
+        }
+
+        public async Task<int> GetGameInProgressId(int teamId)
+        {
+            // Get the upcoming games for the team and return the id of the one with the earliest gametime
+            var games = await GetNextScheduleAsync(teamId);
+            if (games.Count() == 0) return 0;
+            var liveGame = games.Where(g => g.CodedGameState == "P" || g.CodedGameState == "I" || g.CodedGameState == "O").FirstOrDefault();
+            return liveGame?.gameID ?? 0;
+        }
+
+        public async Task<int> GetNextUnplayedGameId(int teamId)
+        {
+            // Get the upcoming games for the team and return the id of the one with the earliest gametime
+            var games = await GetNextScheduleAsync(teamId);
+            if (games.Count() == 0) return 0;
+            var gameId = games.Where(g => g.CodedGameState == "S").OrderBy(g => g.GameTime).Select(g => g.gameID).First();
+            return gameId ?? 0;
+        }
+
+        public async Task<int> GetLastGameId(int teamId)
+        {
+            // Get the upcoming games for the team and return the id of the one with the earliest gametime
+            var games = await GetPreviousScheduleAsync(teamId);
+            if (games.Count() == 0) return 0;
+            var firstGame = games.Aggregate((curMax, x) =>
+                (curMax == null || (x.GameTime ?? DateTime.MinValue) > curMax.GameTime ? x : curMax));
+            return firstGame.gameID ?? 0;
+        }
+
     }
 }

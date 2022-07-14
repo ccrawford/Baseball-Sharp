@@ -81,6 +81,15 @@ public class Away
     public Team? team { get; set; }
     public bool splitSquad { get; set; }
     public int seriesNumber { get; set; }
+    public int? score { get; set; }
+
+    public ProbablePitcher? probablePitcher { get; set; }
+}
+
+public class ProbablePitcher
+{
+    public int id { get; set; }
+    public string? fullName { get; set; }
 }
 
 public class Leaguerecord
@@ -103,6 +112,9 @@ public class Home
     public Team1? team { get; set; }
     public bool splitSquad { get; set; }
     public int seriesNumber { get; set; }
+    public int? score { get; set; }
+
+    public ProbablePitcher? probablePitcher { get; set; }
 }
 
 public class Leaguerecord1
