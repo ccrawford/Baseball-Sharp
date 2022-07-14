@@ -123,7 +123,6 @@ namespace BaseballSharp
 
             var jsonResponse = await GetResponseAsync("/schedule?gamePk=" + gamePk.ToString() + "&useLatestGames=true&hydrate=probablePitcher");
             var gameSchedule = JsonSerializer.Deserialize<GameScheduleRoot>(jsonResponse);
-            // TODO FIX for double header. Pick the right game. 
             // This is really odd. Using gamePk returns both games of DH and gives same gamePk for both.
             if (gameSchedule?.totalGames == 0) return new Schedule();
 
