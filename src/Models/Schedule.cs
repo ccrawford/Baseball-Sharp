@@ -3,6 +3,8 @@
 public class Schedule
 {
     public int? gameID { get; set; }
+    public int? HomeID { get; set; }
+    public int? AwayID { get; set; }
     public string? HomeTeam { get; set; }
     public string? AwayTeam { get; set; }
 
@@ -10,6 +12,9 @@ public class Schedule
     public int? AwayScore { get; set; }
 
     public string? CodedGameState { get; set; }
+    public string? StatusCode { get; set; }
+    public string? DetailedState { get; set; }
+    public string? Reason { get; set; }
 
     public bool? IsHomeWinner
     {
@@ -32,6 +37,8 @@ public class Schedule
     public string? DayNight { get; set; }
 
     public System.DateTime? GameTime { get; set; }
+
+    public System.DateTime? OfficialDate { get; set; }
 
     /// <summary>
     /// The number of innings scheduled for the game. 

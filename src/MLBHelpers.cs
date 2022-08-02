@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BaseballSharp.Models;
 
 namespace BaseballSharp
 {
@@ -57,6 +58,17 @@ namespace BaseballSharp
                 Console.WriteLine($"<option value='{team.Id}'>{team.Name}</option>");
             }
             return;
+        }
+
+        public static IEnumerable<Team> AllTeams()
+        {
+            if (mlbTeams == null) Initialize();
+            var sortedTeams =
+                from team in mlbTeams
+                orderby team.LeagueName, team.Name
+                select team;
+            
+            return sortedTeams;
         }
     }
 }

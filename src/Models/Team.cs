@@ -8,9 +8,14 @@ public class Team
     public string? FullName { get; set; }
 
     /// <summary>
-    /// The team's name (eg: "Jays").
+    /// The team's full name (eg: "Chicago White Sox").
     /// </summary>
     public string? Name { get; set; }
+
+    /// <summary>
+    /// The team's name without city (eg: "White Sox").
+    /// </summary>
+    public string? TeamName { get; set; }
 
     /// <summary>
     /// Team hometown.

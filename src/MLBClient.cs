@@ -4,6 +4,7 @@ using BaseballSharp.DTO.Linescore;
 using BaseballSharp.DTO.PitchingReport;
 using BaseballSharp.DTO.Teams;
 using BaseballSharp.DTO.Standings;
+using BaseballSharp.DTO.LeagueStandings;
 using BaseballSharp.Enums;
 using BaseballSharp.Models;
 using System;
@@ -136,8 +137,12 @@ namespace BaseballSharp
                 Ballpark = gameSchedule?.dates[0].games[0].venue?.name,
                 ScheduledInnings = gameSchedule?.dates[0].games[0].scheduledInnings,
                 CodedGameState = gameSchedule?.dates[0].games[0].status?.codedGameState ?? "X",
+                StatusCode = gameSchedule?.dates[0].games[0].status.statusCode,
+                DetailedState = gameSchedule?.dates[0].games[0].status.detailedState,
+                Reason = gameSchedule?.dates[0].games[0].status.reason,
                 DayNight = gameSchedule?.dates[0].games[0].dayNight,
                 GameTime = gameSchedule?.dates[0].games[0].gameDate,
+                OfficialDate = DateTime.Parse(gameSchedule?.dates[0].games[0].officialDate),
                 HomeScore = gameSchedule?.dates[0].games[0].teams?.home?.score,
                 AwayScore = gameSchedule?.dates[0].games[0].teams?.away?.score,
             };
@@ -167,7 +172,9 @@ namespace BaseballSharp
                     {
                         gameID = game.gamePk,
                         AwayTeam = game.teams?.away?.team?.name,
+                        AwayID = game.teams?.away?.team?.id,
                         HomeTeam = game.teams?.home?.team?.name,
+                        HomeID = game.teams?.home?.team?.id,
                         Ballpark = game.venue?.name,
                         ScheduledInnings = game.scheduledInnings,
                         DayNight = game.dayNight,
@@ -233,6 +240,7 @@ namespace BaseballSharp
                 teamsList.Add(new Models.Team()
                 {
                     Name = team.name,
+                    TeamName = team.teamName,
                     Location = team.locationName,
                     Id = team.id,
                     LeagueId = team.league?.id,
@@ -333,7 +341,6 @@ namespace BaseballSharp
                             gamesBack = teamRecord.gamesBack,
                             wins = teamRecord.wins,
                             losses = teamRecord.losses,
-                            pct = teamRecord.winningPercentage,
                             magicNumber = teamRecord.magicNumber,
 
                         });
@@ -346,6 +353,98 @@ namespace BaseballSharp
             return standings;
 
         }
+
+        public async Task<IEnumerable<WildcardStanding>> GetWildcardStandings()
+        {
+            var standings = new List<WildcardStanding>();
+            var year = DateTime.Now.Year;
+            int[] leagueIds = { 103, 104 };
+            foreach (var league in leagueIds)
+            {
+                var jsonResponse = await GetResponseAsync($"/standings?leagueId={league}&season={year}&hydrate=league&standingsType=wildCard");
+                var leagueStandingsJson = JsonSerializer.Deserialize<LeagueStandingsDto>(jsonResponse);
+
+                // Should only be one record.
+                foreach (var record in (leagueStandingsJson ?? new LeagueStandingsDto()).records)
+                {
+                    var teamRecords = new List<WildcardTeamStanding>();
+                    foreach (var teamRecord in record.teamRecords)
+                    {
+                        teamRecords.Add(new WildcardTeamStanding()
+                        {
+                            teamId = teamRecord.team.id,
+                            nameAbbr = MLBHelpers.NameToShortName(teamRecord.team.name),
+                            magicNumber = teamRecord.magicNumber,
+                            clinched = teamRecord.clinched,
+                            wildCardGamesBack = teamRecord.wildCardGamesBack,
+                            wildCardRank = teamRecord.wildCardRank,
+                            wins = teamRecord.wins,
+                            losses = teamRecord.losses,
+                        });
+                    }
+
+                    standings.Add(new WildcardStanding()
+                    {
+                        Teams = teamRecords,
+                        LeagueId = record.league.id,
+                        LeagueName = record.league.abbreviation,
+
+                    });
+                }
+            }
+
+            return standings;
+
+        }
+
+
+        public async Task<IEnumerable<DivisionStanding>> GetLeagueStandings()
+        {
+            var standings = new List<DivisionStanding>();
+            var year = DateTime.Now.Year;
+            int[] leagueIds = { 103, 104 };
+            foreach (var league in leagueIds)
+            {
+                var jsonResponse = await GetResponseAsync($"/standings?leagueId={league}&season={year}&hydrate=division,league");
+                var leagueStandingsJson = JsonSerializer.Deserialize<LeagueStandingsDto>(jsonResponse);
+
+                foreach (var division in (leagueStandingsJson ?? new LeagueStandingsDto()).records)
+                {
+                    var teamRecords = new List<Standing>();
+                    foreach (var teamRecord in division.teamRecords)
+                    {
+                        teamRecords.Add(new Standing()
+                        {
+                            teamId = teamRecord.team.id,
+                            nameAbbr = MLBHelpers.NameToShortName(teamRecord.team.name),
+                            divisionRank = teamRecord.divisionRank,
+                            gamesBack = teamRecord.gamesBack,
+                            magicNumber = teamRecord.magicNumber,
+                            clinched = teamRecord.clinched,
+                            wildCardGamesBack = teamRecord.wildCardGamesBack,
+                            wildCardRank = teamRecord.wildCardRank,
+                            wins = teamRecord.wins,
+                            losses = teamRecord.losses,
+                        });
+                    }
+
+                    standings.Add(new DivisionStanding()
+                    {
+                        DivisionId = division.division.id,
+                        DivisionAbbr = division.division.abbreviation,
+                        DivisionName = division.division.nameShort,
+                        Teams = teamRecords,
+                        LeagueId = division.league.id,
+                        LeagueName = division.league.nameShort,
+
+                    });
+                }
+            }
+
+            return standings;
+
+        }
+
 
         /// <summary>
         /// Returns a list of linescore data for the game in question.

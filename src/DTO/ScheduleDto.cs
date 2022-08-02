@@ -67,6 +67,7 @@ public class Status
     public string? statusCode { get; set; }
     public bool startTimeTBD { get; set; }
     public string? abstractGameCode { get; set; }
+    public string? reason { get; set; }
 }
 
 public class Teams
