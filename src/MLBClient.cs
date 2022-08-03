@@ -354,6 +354,40 @@ namespace BaseballSharp
 
         }
 
+        public async Task<IEnumerable<BaseballSharp.Models.GameSummary>> GetAllGameSummary(string date)
+        {
+            // TODO check for valid date
+
+            var jsonResponse = await GetResponseAsync($"/schedule?sportId=1&scheduleType=1&date={date}&hydrate=linescore");
+            var allGames = JsonSerializer.Deserialize<BaseballSharp.DTO.GameSummary.AllGameSummaryDto>(jsonResponse);
+
+            var retval = new List<BaseballSharp.Models.GameSummary>();
+
+            foreach (var game in (allGames ?? new BaseballSharp.DTO.GameSummary.AllGameSummaryDto()).dates[0].games)
+            {
+                retval.Add(new BaseballSharp.Models.GameSummary()
+                {
+                    gamePk = game.gamePk,
+                    HomeId = game.teams.home.team.id,
+                    AwayId = game.teams.away.team.id,
+                    HomeAbbr = MLBHelpers.NameToShortName(game.teams.home.team.name),
+                    AwayAbbr = MLBHelpers.NameToShortName(game.teams.away.team.name),
+                    HomeScore = game.teams.home.score,
+                    AwayScore = game.teams.away.score,
+                    Inning = game.linescore.currentInning,
+                    State = game.status.codedGameState,
+                    IsTop = game.linescore.isTopInning,
+                    Outs = game.linescore.outs,
+                    On1 = game.linescore.offense.first != null,
+                    On2 = game.linescore.offense.second != null,
+                    On3 = game.linescore.offense.third != null,
+                    UnixTime = ((DateTimeOffset)game.gameDate).ToUnixTimeSeconds(),
+                });
+            }
+            return retval;
+        }
+       
+
         public async Task<IEnumerable<WildcardStanding>> GetWildcardStandings()
         {
             var standings = new List<WildcardStanding>();
