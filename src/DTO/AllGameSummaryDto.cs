@@ -95,7 +95,7 @@ namespace BaseballSharp.DTO.GameSummary
         public string officialDate { get; set; }
         public Status status { get; set; }
         public Teams teams { get; set; }
-        public Linescore linescore { get; set; }
+        public Linescore? linescore { get; set; }
         public Venue venue { get; set; }
         public Content content { get; set; }
         public bool isTie { get; set; }

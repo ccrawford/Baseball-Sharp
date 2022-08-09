@@ -365,6 +365,7 @@ namespace BaseballSharp
 
             foreach (var game in (allGames ?? new BaseballSharp.DTO.GameSummary.AllGameSummaryDto()).dates[0].games)
             {
+                // If game is delayed, linescore is null.
                 retval.Add(new BaseballSharp.Models.GameSummary()
                 {
                     gamePk = game.gamePk,
@@ -374,13 +375,13 @@ namespace BaseballSharp
                     AwayAbbr = MLBHelpers.NameToShortName(game.teams.away.team.name),
                     HomeScore = game.teams.home.score,
                     AwayScore = game.teams.away.score,
-                    Inning = game.linescore.currentInning,
+                    Inning = game.linescore?.currentInning ?? 0,
                     State = game.status.codedGameState,
-                    IsTop = game.linescore.isTopInning,
-                    Outs = game.linescore.outs,
-                    On1 = game.linescore.offense.first != null,
-                    On2 = game.linescore.offense.second != null,
-                    On3 = game.linescore.offense.third != null,
+                    IsTop = game.linescore?.isTopInning ?? false,
+                    Outs = game.linescore?.outs ?? 0,
+                    On1 = game.linescore?.offense.first != null,
+                    On2 = game.linescore?.offense.second != null,
+                    On3 = game.linescore?.offense.third != null,
                     UnixTime = ((DateTimeOffset)game.gameDate).ToUnixTimeSeconds(),
                 });
             }
