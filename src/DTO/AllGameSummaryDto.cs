@@ -9,12 +9,13 @@ namespace BaseballSharp.DTO.GameSummary
     // Root myDeserializedClass = JsonConvert.DeserializeObject<Root>(myJsonResponse);
     // For use with: https://statsapi.mlb.com/api/v1/schedule?sportId=1&scheduleType=1&date=2022-08-01&hydrate=linescore
 
-    public class Away
+    public class PlayingTeams
     {
         public LeagueRecord leagueRecord { get; set; }
         public int score { get; set; }
         public Team team { get; set; }
         public bool isWinner { get; set; }
+        public Pitcher? probablePitcher { get; set; }
         public bool splitSquad { get; set; }
         public int seriesNumber { get; set; }
         public int runs { get; set; }
@@ -60,6 +61,13 @@ namespace BaseballSharp.DTO.GameSummary
         public List<object> events { get; set; }
     }
 
+    public class Decisions
+    {
+        public Pitcher winner { get; set; }
+        public Pitcher loser { get; set; }
+        public Pitcher save { get; set; }
+    }
+
     public class Defense
     {
         public Pitcher pitcher { get; set; }
@@ -96,6 +104,7 @@ namespace BaseballSharp.DTO.GameSummary
         public Status status { get; set; }
         public Teams teams { get; set; }
         public Linescore? linescore { get; set; }
+        public Decisions? decisions { get; set; }
         public Venue venue { get; set; }
         public Content content { get; set; }
         public bool isTie { get; set; }
@@ -118,20 +127,20 @@ namespace BaseballSharp.DTO.GameSummary
         public string ifNecessaryDescription { get; set; }
     }
 
-    public class Home
-    {
-        public LeagueRecord leagueRecord { get; set; }
-        public int score { get; set; }
-        public Team team { get; set; }
-        public bool isWinner { get; set; }
-        public bool splitSquad { get; set; }
-        public int seriesNumber { get; set; }
-        public int runs { get; set; }
-        public int hits { get; set; }
-        public int errors { get; set; }
-        public int leftOnBase { get; set; }
-    }
 
+    //public class Home
+    //{
+    //    public LeagueRecord leagueRecord { get; set; }
+    //    public int score { get; set; }
+    //    public Team team { get; set; }
+    //    public bool isWinner { get; set; }
+    //    public bool splitSquad { get; set; }
+    //    public int seriesNumber { get; set; }
+    //    public int runs { get; set; }
+    //    public int hits { get; set; }
+    //    public int errors { get; set; }
+    //    public int leftOnBase { get; set; }
+    //}
     public class InHole
     {
         public int id { get; set; }
@@ -143,8 +152,8 @@ namespace BaseballSharp.DTO.GameSummary
     {
         public int num { get; set; }
         public string ordinalNum { get; set; }
-        public Home home { get; set; }
-        public Away away { get; set; }
+        public PlayingTeams home { get; set; }
+        public PlayingTeams away { get; set; }
     }
 
     public class LeagueRecord
@@ -257,8 +266,8 @@ namespace BaseballSharp.DTO.GameSummary
     
     public class Teams
     {
-        public Away away { get; set; }
-        public Home home { get; set; }
+        public PlayingTeams away { get; set; }
+        public PlayingTeams home { get; set; }
     }
     
     

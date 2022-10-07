@@ -35,6 +35,7 @@ public class Game
     public string? officialDate { get; set; }
     public Status? status { get; set; }
     public Teams? teams { get; set; }
+    public Decisions? decisions { get; set; }
     public Venue? venue { get; set; }
     public Content? content { get; set; }
     public int gameNumber { get; set; }
@@ -142,4 +143,32 @@ public class Venue
 public class Content
 {
     public string? link { get; set; }
+}
+
+public class Decisions
+{
+    public Winner winner { get; set; }
+    public Loser loser { get; set; }
+    public Save save { get; set; }
+}
+
+public class Winner
+{
+    public int id { get; set; }
+    public string fullName { get; set; }
+    public string link { get; set; }
+}
+
+public class Loser
+{
+    public int id { get; set; }
+    public string fullName { get; set; }
+    public string link { get; set; }
+}
+
+public class Save
+{
+    public int id { get; set; }
+    public string fullName { get; set; }
+    public string link { get; set; }
 }

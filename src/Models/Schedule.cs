@@ -15,6 +15,7 @@ public class Schedule
     public string? StatusCode { get; set; }
     public string? DetailedState { get; set; }
     public string? Reason { get; set; }
+    public string? AbstractGameCode { get; set; }
 
     public bool? IsHomeWinner
     {
@@ -27,6 +28,8 @@ public class Schedule
 
     public string? HomeProbablePitcher { get; set; }
     public string? AwayProbablePitcher { get; set; }
+    public string? WinningPitcher { get; set; }
+    public string? LosingPitcher { get; set; }
 
 
     /// <summary>

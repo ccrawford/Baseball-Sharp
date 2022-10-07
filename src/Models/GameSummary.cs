@@ -12,6 +12,11 @@ namespace BaseballSharp.Models
         public int? HomeId { get; set; }
         public int? AwayId { get; set; }
 
+        public string? hPitcher { get; set; }
+        public string? aPitcher { get; set; }
+        public string? wPitcher { get; set; }
+        public string? lPitcher { get; set; }
+
         public string? HomeAbbr { get; set; }
         public string? AwayAbbr { get; set; }
 
