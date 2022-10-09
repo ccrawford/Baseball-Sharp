@@ -450,6 +450,9 @@ namespace BaseballSharp
             return retval;
         }
 
+        // Used to show summary screens for the league ("Pretty Screen" in the Hub75)
+        // This one is used during the regular season. Separate version for the off season. Lame.
+        // Got lazy here: The return value is the same one I pass to the device.
         public async Task<IEnumerable<BaseballSharp.Models.GameSummary>> GetAllGameFullSummary(string date)
         {
             // TODO check for valid date
@@ -491,6 +494,49 @@ namespace BaseballSharp
             }
             return retval;
         }
+
+        public async Task<IEnumerable<BaseballSharp.Models.PostSeasonGameSummary>> GetPostSeasonFullSummary(string date)
+        {
+            // TODO check for valid date
+
+            var jsonResponse = await GetResponseAsync($"/schedule?sportId=1&date={date}&hydrate=linescore");
+            var allGames = JsonSerializer.Deserialize<BaseballSharp.DTO.GameSummary.AllGameSummaryDto>(jsonResponse);
+
+            var retval = new List<BaseballSharp.Models.PostSeasonGameSummary>();
+
+            // Need to find the current date...call doesn't 
+
+            foreach (var game in (allGames ?? new BaseballSharp.DTO.GameSummary.AllGameSummaryDto()).dates[0].games.OrderBy(g => g.gamePk))
+            {
+                string winnerAbbr = string.Empty;
+                if (game.teams.home.leagueRecord.wins > game.gamesInSeries / 2) winnerAbbr = MLBHelpers.NameToShortName(game.teams.home.team.name);
+                if (game.teams.away.leagueRecord.wins > game.gamesInSeries / 2) winnerAbbr = MLBHelpers.NameToShortName(game.teams.away.team.name);
+                
+                // If game is delayed, linescore is null.
+                retval.Add(new BaseballSharp.Models.PostSeasonGameSummary()
+                {
+                    gamePk = game.gamePk,
+                    HomeId = game.teams.home.team.id,
+                    AwayId = game.teams.away.team.id,
+                    HomeWins = game.teams.home.leagueRecord.wins,
+                    AwayWins = game.teams.away.leagueRecord.wins,
+
+                    HomeAbbr = MLBHelpers.NameToShortName(game.teams.home.team.name),
+                    AwayAbbr = MLBHelpers.NameToShortName(game.teams.away.team.name),
+                    HomeScore = game.teams.home.score,
+                    AwayScore = game.teams.away.score,
+                    Inning = game.linescore?.currentInning ?? 0,
+                    InningOrdinal = game.linescore?.currentInningOrdinal ?? "",
+                    State = game.status.codedGameState,
+                    IsTop = game.linescore?.isTopInning ?? false,
+                    UnixTime = ((DateTimeOffset)game.gameDate).ToUnixTimeSeconds(),
+                    SeriesName = game.description,  // Only used during postseason
+                    WinnerAbbr = winnerAbbr,
+                });
+            }
+            return retval;
+        }
+
 
 
 
@@ -535,6 +581,49 @@ namespace BaseballSharp
 
             return standings;
 
+        }
+
+        // <Summary>
+        // Return League info...really useful for season phasing.
+        // </Summary>
+
+        //TODO: Cache these results in a league class. No need to repeatedly fetch.
+        public async Task<BaseballSharp.Models.SeasonDateInfo> GetSeasonDates(int leagueId)
+        {
+            var jsonResponse = await GetResponseAsync($"/league/{leagueId}");
+            var allLeagues = JsonSerializer.Deserialize<Leagues>(jsonResponse);
+
+            var retval = new BaseballSharp.Models.SeasonDateInfo();
+            
+            if (allLeagues.leagues.Count() == 0) return retval;
+
+            var dates = allLeagues.leagues[0].seasonDateInfo;
+
+            retval.preSeasonStartDate = mlbDateToUnixTime(dates.preSeasonStartDate);
+            retval.preSeasonEndDate = mlbDateToUnixTime(dates.preSeasonEndDate);
+            retval.seasonStartDate = mlbDateToUnixTime(dates.seasonStartDate);
+            retval.springStartDate = mlbDateToUnixTime(dates.springStartDate);
+            retval.springEndDate = mlbDateToUnixTime(dates.springEndDate);
+            retval.regularSeasonStartDate = mlbDateToUnixTime(dates.regularSeasonStartDate);
+            retval.lastDate1stHalf = mlbDateToUnixTime(dates.lastDate1stHalf);
+            retval.allStarDate = mlbDateToUnixTime(dates.allStarDate);
+            retval.firstDate2ndHalf = mlbDateToUnixTime(dates.firstDate2ndHalf);
+            retval.regularSeasonEndDate = mlbDateToUnixTime(dates.regularSeasonEndDate);
+            retval.postSeasonStartDate = mlbDateToUnixTime(dates.postSeasonStartDate);
+            retval.postSeasonEndDate = mlbDateToUnixTime(dates.postSeasonEndDate);
+            retval.seasonEndDate = mlbDateToUnixTime(dates.seasonEndDate);
+            retval.offseasonStartDate = mlbDateToUnixTime(dates.offseasonStartDate);
+            retval.offSeasonEndDate = mlbDateToUnixTime(dates.offSeasonEndDate);
+            retval.seasonState = allLeagues.leagues[0].seasonState;
+            retval.seasonYear = allLeagues.leagues[0].season;
+            return retval;
+        }
+
+
+
+        long mlbDateToUnixTime(string mlbDate)
+        {
+            return DateTimeOffset.ParseExact(mlbDate, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture).ToUnixTimeSeconds();
         }
 
         // <Summary>

@@ -122,6 +122,7 @@ namespace BaseballSharp.DTO.GameSummary
         public int gamesInSeries { get; set; }
         public int seriesGameNumber { get; set; }
         public string seriesDescription { get; set; }
+        public string? description { get; set; }  //used during post season.
         public string recordSource { get; set; }
         public string ifNecessary { get; set; }
         public string ifNecessaryDescription { get; set; }
