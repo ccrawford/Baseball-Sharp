@@ -15,6 +15,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Team = BaseballSharp.DTO.Teams.Team;
 using Recap = BaseballSharp.Models.Recap;
+using System.Net.Http.Headers;
 
 namespace BaseballSharp
 {
@@ -536,6 +537,52 @@ namespace BaseballSharp
             }
             return retval;
         }
+
+        public async Task<IEnumerable<BaseballSharp.Models.PostSeasonSeriesGame>> GetPostSeasonBracket(string date)
+        {
+            var retvar = new List<PostSeasonSeriesGame>();
+            var seriesName = new Dictionary<string, string>() {
+                {"W_1", "World Series" },
+                {"L_1", "ALCS" },
+                {"L_2", "NLCS" },
+                {"F_1", "AL WCS 3&6" },
+                {"F_2", "AL WCS 4&5" },
+                {"F_3", "NL WCS 3&6" },
+                {"F_4", "NL WCS 4&5" },
+                {"D_1", "ALDS" },
+                {"D_2", "ALDS" },
+                {"D_3", "NLDS" },
+                {"D_4", "NLDS" },
+            };
+
+            var jsonResponse = await GetResponseAsync($"/schedule/postseason/series?sportId=1&fields=series,totalGames,series,id,games,gameDate,gamesInSeries,seriesGameNumber,description,seriesDescription,gamePk,status,abstractGameCode,teams,team,id,leagueRecord,wins");
+            var allGames = JsonSerializer.Deserialize<GameScheduleRoot>(jsonResponse);
+            //            var results = allGames.series.Select()
+            foreach (var series in allGames.series)
+            {   
+                var game = series.games.OrderByDescending(x => x.seriesGameNumber).First();
+
+
+
+                retvar.Add(new PostSeasonSeriesGame()
+                {
+                    id = series.series.id,
+                    description = seriesName[series.series.id],
+                    totalGames = series.totalGames,
+                    homeId = game.teams.home.team.id,
+                    homeAbbr = MLBHelpers.IdToAbbr(game.teams.home.team.id),
+                    awayAbbr = MLBHelpers.IdToAbbr(game.teams.away.team.id),
+                    awayId = game.teams.away.team.id,
+                    homeWins = game.teams.home.leagueRecord.wins,
+                    awayWins = game.teams.away.leagueRecord.wins,
+                    isOver = (game.status.abstractGameCode == "F"),
+                });
+            }
+
+            return retvar.OrderBy(x=>x.id);
+        }
+
+        
 
 
 

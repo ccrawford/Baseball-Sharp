@@ -12,6 +12,7 @@ public class GameScheduleRoot
     public int totalGames { get; set; }
     public int totalGamesInProgress { get; set; }
     public Date[] dates { get; set; } = Array.Empty<Date>();
+    public List<Series>? series { get; set; }
 }
 
 public class Date
@@ -171,4 +172,12 @@ public class Save
     public int id { get; set; }
     public string fullName { get; set; }
     public string link { get; set; }
+}
+
+public class Series
+{
+    public Series series { get; set; }
+    public int totalGames { get; set; }
+    public List<Game> games { get; set; }
+    public string id { get; set; }
 }

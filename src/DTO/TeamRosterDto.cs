@@ -38,4 +38,5 @@ public class Status
 {
     public string? code { get; set; }
     public string? description { get; set; }
+    public string? abstractGameCode { get; set; }
 }

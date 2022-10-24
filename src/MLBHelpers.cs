@@ -46,6 +46,23 @@ namespace BaseballSharp
             return retval;
         }
 
+        public static string IdToAbbr(int id)
+        {
+            if (mlbTeams == null) Initialize();
+            var abbr = mlbTeams.Where(x=>x.Id == id).Select(x=>x.Abbreviation).FirstOrDefault();
+            return abbr ?? String.Empty;
+
+        }
+
+
+
+        public static string LeagueAbbrFromTeamId(int teamId)
+        {
+            if (mlbTeams == null) Initialize();
+            var name = mlbTeams.Where(x => x.Id == teamId).Select(x => x.LeagueName).FirstOrDefault();
+            return name?? String.Empty;
+        }
+
         public static void BuildTeamSelect()
         {
             if (mlbTeams == null) Initialize();
