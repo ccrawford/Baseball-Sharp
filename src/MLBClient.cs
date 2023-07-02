@@ -463,35 +463,38 @@ namespace BaseballSharp
 
             var retval = new List<BaseballSharp.Models.GameSummary>();
 
-            foreach (var game in (allGames ?? new BaseballSharp.DTO.GameSummary.AllGameSummaryDto()).dates[0].games.OrderBy(g => g.gamePk))
+            if (allGames.dates.Count > 0)
             {
-
-                // If game is delayed, linescore is null.
-                retval.Add(new BaseballSharp.Models.GameSummary()
+                foreach (var game in (allGames ?? new BaseballSharp.DTO.GameSummary.AllGameSummaryDto()).dates[0].games.OrderBy(g => g.gamePk))
                 {
-                    gamePk = game.gamePk,
-                    HomeId = game.teams.home.team.id,
-                    AwayId = game.teams.away.team.id,
 
-                    hPitcher = game.teams.home.probablePitcher?.fullName ?? "TBD",
-                    aPitcher = game.teams.away.probablePitcher?.fullName ?? "TBD",
+                    // If game is delayed, linescore is null.
+                    retval.Add(new BaseballSharp.Models.GameSummary()
+                    {
+                        gamePk = game.gamePk,
+                        HomeId = game.teams.home.team.id,
+                        AwayId = game.teams.away.team.id,
 
-                    wPitcher = game.decisions?.winner.fullName ?? "",
-                    lPitcher = game.decisions?.loser.fullName ?? "",
+                        hPitcher = game.teams.home.probablePitcher?.fullName ?? "TBD",
+                        aPitcher = game.teams.away.probablePitcher?.fullName ?? "TBD",
 
-                    HomeAbbr = MLBHelpers.NameToShortName(game.teams.home.team.name),
-                    AwayAbbr = MLBHelpers.NameToShortName(game.teams.away.team.name),
-                    HomeScore = game.teams.home.score,
-                    AwayScore = game.teams.away.score,
-                    Inning = game.linescore?.currentInning ?? 0,
-                    State = game.status.codedGameState,
-                    IsTop = game.linescore?.isTopInning ?? false,
-                    Outs = game.linescore?.outs ?? 0,
-                    On1 = game.linescore?.offense.first != null,
-                    On2 = game.linescore?.offense.second != null,
-                    On3 = game.linescore?.offense.third != null,
-                    UnixTime = ((DateTimeOffset)game.gameDate).ToUnixTimeSeconds(),
-                }) ;
+                        wPitcher = game.decisions?.winner.fullName ?? "",
+                        lPitcher = game.decisions?.loser.fullName ?? "",
+
+                        HomeAbbr = MLBHelpers.NameToShortName(game.teams.home.team.name),
+                        AwayAbbr = MLBHelpers.NameToShortName(game.teams.away.team.name),
+                        HomeScore = game.teams.home.score,
+                        AwayScore = game.teams.away.score,
+                        Inning = game.linescore?.currentInning ?? 0,
+                        State = game.status.codedGameState,
+                        IsTop = game.linescore?.isTopInning ?? false,
+                        Outs = game.linescore?.outs ?? 0,
+                        On1 = game.linescore?.offense.first != null,
+                        On2 = game.linescore?.offense.second != null,
+                        On3 = game.linescore?.offense.third != null,
+                        UnixTime = ((DateTimeOffset)game.gameDate).ToUnixTimeSeconds(),
+                    });
+                }
             }
             return retval;
         }
@@ -537,6 +540,14 @@ namespace BaseballSharp
             }
             return retval;
         }
+
+        //public async Task<IEnumerable<BaseballSharp.Models.PostSeasonSeriesGame>> GetWorldSeriesInfo(string date)
+        //{
+        //    //        public async Task<IEnumerable<BaseballSharp.Models.PostSeasonSeriesGame>> GetPostSeasonBracket(string date)
+        //    {
+
+        //    }
+        //}
 
         public async Task<IEnumerable<BaseballSharp.Models.PostSeasonSeriesGame>> GetPostSeasonBracket(string date)
         {
